@@ -1,5 +1,6 @@
 import socketio from 'socket.io';
 import express from 'express';
+import consolidate from 'consolidate';
 import {
     components, install
 }
@@ -7,15 +8,27 @@ from '../component/componentinstaller';
 
 let app = express();
 
+// Only use logger for development environment
+if (process.env.NODE_ENV === 'development') {
+    app.use(express.logger('dev'));
+}
+
+app.engine('jade', consolidate.jade);
+app.set('view engine', 'html');
+app.set('views', __dirname + '/template');
+app.enable('jsonp callback');
+
 app.get('/', function (req, res) {
-    res.send('Hello World!')
+    res.render('index.jade', {
+        scripts: []
+    });
 });
 
-let router = express.router();
-let io;
+let router = express.Router();
+let server, io;
 
 app.use('/component', router);
-app.listen(3000);
-io = socketio.listen(app);
+server = app.listen(3000);
+io = socketio.listen(server);
 
-install((name => '../component/' + name), router.route('/' + name), io);
+install((name => '../component/' + name), router, io);

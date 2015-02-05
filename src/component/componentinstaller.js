@@ -13,6 +13,6 @@ function install() {
     });
 };
 
-modue.exports = {
+module.exports = {
     components, install
 };
