@@ -1,4 +1,6 @@
 export default function install(socket) {
+    console.log('Installing clock');
+
     socket.on('clock', function (data) {
         console.log(data);
 
