@@ -3,7 +3,7 @@ export default {
         console.log('Installing clock');
 
         io.on('connection', socket => {
-            console.log(socket);
+            console.log(socket.handshake);
             socket.join('clock');
         });
 
