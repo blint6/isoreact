@@ -5,6 +5,7 @@ import {
     components, install
 }
 from '../component/componentinstaller';
+import jedis from './app';
 
 let app = express();
 
@@ -31,4 +32,4 @@ app.use('/component', router);
 server = app.listen(3000);
 io = socketio.listen(server);
 
-install((name => '../component/' + name), router, io);
+jedis(io, 'tmp/', [require.resolve('../component/clock')]);

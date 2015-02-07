@@ -1,0 +1,5 @@
+'use strict';
+
+<% components.forEach(function(component) { %>
+    require('<%= component.replace('\'', '\\\'') %>');
+<% }); %>

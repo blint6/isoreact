@@ -11,7 +11,7 @@ function install() {
             component.install.apply(undefined, args);
         }
     });
-};
+}
 
 module.exports = {
     components, install

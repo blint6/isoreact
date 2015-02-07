@@ -3,6 +3,7 @@
 var browserify = require('browserify');
 var gulp = require('gulp');
 var del = require('del');
+var insert = require('gulp-insert');
 var jshint = require('gulp-jshint');
 var mocha = require('gulp-mocha');
 var changed = require('gulp-changed');
@@ -18,6 +19,11 @@ var getBundleName = function () {
     var version = require('./package.json').version;
     var name = require('./package.json').name;
     return version + '.' + name + '.' + 'min';
+};
+
+var paths = {
+    js: 'src/**/*.js',
+    asset: ['src/**', '!src/**/*.js']
 };
 
 gulp.task('javascript', function () {
@@ -54,39 +60,27 @@ gulp.task('javascript', function () {
 gulp.task('clean', function (cb) {
     del.sync('build', {
         force: true
-    });
-});
-
-gulp.task('lint', function () {
-    return gulp.src('src/**/*.js')
-        .pipe(changed('build/changed'))
-        .pipe(jshint())
-        .pipe(jshint.reporter('default'));
+    }, cb);
 });
 
 gulp.task('transpile', function () {
-    return gulp.src('src/**/*.js', {
+    return gulp.src(paths.js, {
             base: 'src'
         })
-        .pipe(changed('build/changed'))
+        .pipe(changed('build'))
+        .pipe(insert.prepend('\'use strict\';\n'))
+        .pipe(jshint())
+        .pipe(jshint.reporter('default'))
         .pipe(to5())
-        .pipe(gulp.dest('build/server'));
+        .pipe(gulp.dest('build'));
 });
 
 gulp.task('copy', function () {
-    return gulp.src('src/**', {
+    return gulp.src(paths.asset, {
             base: 'src'
         })
-        .pipe(changed('build/changed'))
-        .pipe(gulp.dest('build/server'));
-});
-
-gulp.task('changed', function () {
-    gulp.src('src/**/*.js', {
-            base: 'src'
-        })
-        .pipe(changed('build/changed'))
-        .pipe(gulp.dest('build/changed'));
+        .pipe(changed('build'))
+        .pipe(gulp.dest('build'));
 });
 
 gulp.task('test', ['transpile'], function () {
@@ -97,7 +91,8 @@ gulp.task('test', ['transpile'], function () {
         .pipe(mocha());
 });
 
-gulp.task('watch', ['clean'], function () {
-    gulp.start('lint', 'build');
-    gulp.watch([paths.js.src, paths.js.test.js], ['lint', 'test', 'changed']);
+gulp.task('watch', function () {
+    gulp.start('transpile', 'copy');
+    gulp.watch([paths.js], ['transpile']);
+    gulp.watch([paths.asset], ['copy']);
 });
