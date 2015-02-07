@@ -1,13 +1,13 @@
-export default function install(socket) {
+export default function install(app) {
     console.log('Installing clock');
 
-    socket.on('clock', function (data) {
+    app.io.on('clock', function (data) {
         console.log(data);
 
-        socket.emit('gotcha', {
+        app.io.emit('gotcha', {
             my: 'data'
         });
     });
 
-    socket.on('gotchi', data => console.log(data));
+    app.io.on('gotchi', data => console.log(data));
 }

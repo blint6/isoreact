@@ -1,12 +1,15 @@
 'use strict';
 
-var io = require('socket.io-client')('http://localhost:3000/com');
+var io = require('socket.io-client')('http://localhost:3000<%= io.ns %>');
+var jedis = {
+    io: io
+};
 var component;
 
 <% components.forEach(function(component) { %>
 component = require('<%= component.replace(/\\/g, '\\\\').replace(/'/g, '\\\'') %>');
 
 if (typeof component === 'function') {
-    component(io);
+    component(jedis);
 }
 <% }); %>

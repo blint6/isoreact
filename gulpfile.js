@@ -2,6 +2,7 @@
 
 var gulp = require('gulp');
 var del = require('del');
+var es = require('event-stream');
 var insert = require('gulp-insert');
 var jshint = require('gulp-jshint');
 var mocha = require('gulp-mocha');
@@ -18,8 +19,13 @@ var getBundleName = function () {
 
 var paths = {
     js: 'src/**/*.js',
-    asset: ['src/**', '!src/**/*.js']
+    app: 'src/app/**/*.js',
+    component: 'src/component/**/*.js',
+    appasset: ['src/app/**', '!src/app/**/*.js'],
+    componentasset: ['src/component/**', '!src/component/**/*.js']
 };
+
+var app;
 
 gulp.task('clean', function (cb) {
     del.sync('build', {
@@ -27,8 +33,10 @@ gulp.task('clean', function (cb) {
     }, cb);
 });
 
-gulp.task('transpile', function () {
-    return gulp.src(paths.js, {
+gulp.task('transpile-app', function () {
+    function transpile(strm) {}
+
+    return gulp.src(paths.app, {
             base: 'src'
         })
         .pipe(changed('build'))
@@ -39,15 +47,33 @@ gulp.task('transpile', function () {
         .pipe(gulp.dest('build'));
 });
 
+gulp.task('transpile-component', function () {
+    return gulp.src(paths.component)
+        .pipe(changed('build/node_modules'))
+        .pipe(insert.prepend('\'use strict\';\n'))
+        .pipe(jshint())
+        .pipe(jshint.reporter('default'))
+        .pipe(to5())
+        .pipe(gulp.dest('build/node_modules'));
+});
+
 gulp.task('copy', function () {
-    return gulp.src(paths.asset, {
+    return es.merge(
+        gulp.src(paths.appasset, {
             base: 'src'
         })
         .pipe(changed('build'))
-        .pipe(gulp.dest('build'));
+        .pipe(gulp.dest('build')),
+
+        gulp.src(paths.componentasset, {
+            base: 'src/component'
+        })
+        .pipe(changed('build/node_modules'))
+        .pipe(gulp.dest('build/node_modules'))
+    );
 });
 
-gulp.task('test', ['transpile'], function () {
+gulp.task('test', ['transpile-app', 'transpile-component'], function () {
     return gulp
         .src('build/**/*.spec.js', {
             read: false
@@ -55,8 +81,22 @@ gulp.task('test', ['transpile'], function () {
         .pipe(mocha());
 });
 
+gulp.task('run', ['copy', 'transpile-app', 'transpile-component'], function () {
+    if (app) {
+        app.server.close();
+        delete require.cache['./build/app/start'];
+    }
+
+    app = require('./build/app/start');
+});
+
+gulp.task('rebundle', ['copy', 'transpile-component'], function () {
+    app.jedis.bundle();
+});
+
 gulp.task('watch', function () {
-    gulp.start('transpile', 'copy');
-    gulp.watch([paths.js], ['transpile']);
-    gulp.watch([paths.asset], ['copy']);
+    gulp.start('run');
+    gulp.watch(paths.app, ['run']);
+    gulp.watch(paths.component, ['rebundle']);
+    gulp.watch(paths.asset, ['copy']);
 });

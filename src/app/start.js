@@ -2,7 +2,7 @@ import socketio from 'socket.io';
 import express from 'express';
 import morgan from 'morgan';
 import consolidate from 'consolidate';
-import jedis from './jedis/app';
+import App from './jedis/app';
 
 let app = express();
 
@@ -22,13 +22,18 @@ app.get('/', function (req, res) {
     });
 });
 
-let router = express.Router();
 let server, io;
-
-app.use('/component', router);
 
 server = app.listen(3000);
 io = socketio.listen(server);
 
-jedis(io, './tmp/', [require.resolve('../component/clock')])
+var jedis = new App(io, [require.resolve('clock')], './tmp/');
+
+jedis.bundle()
     .then(serveFile => app.use('/script/bundle.js', express.static(serveFile)));
+
+export default {
+    jedis,
+    server,
+    io
+};
