@@ -2,7 +2,7 @@ import socketio from 'socket.io';
 import express from 'express';
 import morgan from 'morgan';
 import consolidate from 'consolidate';
-import App from './jedis/app';
+import App from '../jedis/app';
 
 let app = express();
 
