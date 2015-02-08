@@ -19,9 +19,9 @@ var getBundleName = function () {
 
 var paths = {
     js: 'src/**/*.js',
-    app: 'src/app/**/*.js',
+    app: ['src/**/*.js', '!src/component/**'],
     component: 'src/component/**/*.js',
-    appasset: ['src/app/**', '!src/app/**/*.js'],
+    appasset: ['src/**', '!src/**/*.js', '!src/component/**'],
     componentasset: ['src/component/**', '!src/component/**/*.js']
 };
 
