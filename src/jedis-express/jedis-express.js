@@ -4,6 +4,7 @@ export function singlepage(app, template, options) {
     options = options || {};
 
     let root = '/script/',
+        base = options.base || process.cwd(),
         router = options.router || express.Router({
             strict: true
         }),
@@ -13,7 +14,7 @@ export function singlepage(app, template, options) {
         let scriptPath, i = 0;
 
         // Extract the script path from the specified base if possible or from file name
-        if (options.base && script.indexOf(options.base) === 0) {
+        if (base && script.indexOf(base) === 0) {
             scriptPath = script.substring(options.base.length);
         } else {
             scriptPath = script.substring(script.lastIndexOf('/') + 1);

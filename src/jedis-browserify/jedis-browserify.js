@@ -22,12 +22,13 @@ export default function browserifyBundler(app, options) {
     mkdirp.sync(bundleDir);
     mkdirp.sync(serveDir);
 
-    let jsBundle = template(fs.readFileSync(__dirname + '/bundle.js.tpt'))({
-        components: app.scripts,
-        io: {
-            ns: app.io.name === undefined ? '/' : app.io.name
-        }
-    });
+    let clientScripts = Object.keys(app.components).map(c => app.components[c].client),
+        jsBundle = template(fs.readFileSync(__dirname + '/bundle.js.tpt'))({
+            components: clientScripts,
+            io: {
+                ns: app.io.name === undefined ? '/' : app.io.name
+            }
+        });
 
     fs.writeFileSync(bundleFile, jsBundle);
 

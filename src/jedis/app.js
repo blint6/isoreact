@@ -1,40 +1,55 @@
+import JedisClass from './class';
+
 class Jedis {
     constructor(options) {
         options = options || {};
 
         this.io = options.io;
         this.bundle = options.bundler;
-        this.scripts = [];
+        this.resolving = {};
         this.page = {
             scripts: (options.page && options.page.scripts) || []
         };
 
-        this.components = (options.components || [])
-            .map(req => require(req))
-            .map((component) => {
-                let server = component.server,
-                    client = component.client;
+        this.components = {};
+        (options.components || []).forEach(req => this.get(req));
+    }
 
-                if (typeof server === 'string') {
-                    component.server = require(server);
-                }
-                if (typeof server === 'function') {
-                    server(this);
-                } else {
-                    server = undefined;
-                }
+    get(name) {
+        let component = this.components[name];
 
-                if (typeof client === 'string') {
-                    this.scripts.push(client);
-                } else {
-                    client = undefined;
-                }
+        if (!component) {
+            if (this.resolving[name]) {
+                throw Error(`Circular dependency: ${name} is already being resolved`);
+            }
 
-                return {
-                    server, client
-                };
-            });
+            this.resolving[name] = true;
+
+            component = require(name);
+            this.components[name] = component;
+
+            if (typeof component.server === 'string') {
+                component.server = require(component.server);
+            }
+            if (typeof component.server === 'function') {
+                component.server = component.server(this);
+            } else {
+                component.server = undefined;
+            }
+
+            if (typeof component.client !== 'string') {
+                component.client = undefined;
+            }
+
+            delete this.resolving[name];
+        }
+
+        return component;
     }
 }
+
+Jedis.createClass = function createClass(attrs) {
+    return Object.create(JedisClass, attrs);
+};
 
 export default Jedis;

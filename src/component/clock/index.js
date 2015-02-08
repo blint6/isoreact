@@ -1,4 +1,6 @@
-export default {
+import Jedis from '../../../jedis/app';
+
+export default Jedis.createClass({
     server: function (app) {
         console.log('Installing clock');
 
@@ -11,4 +13,4 @@ export default {
     },
 
     client: require.resolve('./clock.cli.js')
-};
+});
