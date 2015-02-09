@@ -25,7 +25,7 @@ let server, io;
 server = app.listen(3000);
 io = socketio.listen(server);
 
-let componentTree = Jedis.createElement(Clock);
+let componentTree = Jedis.createComponent(Clock);
 
 var jedis = Jedis.createPage(componentTree, {
     io: {

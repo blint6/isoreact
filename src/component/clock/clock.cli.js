@@ -11,3 +11,9 @@ export default function install(app) {
 
     app.io.on('gotchi', data => console.log(data));
 }
+
+export default {
+    onComponentMount: function (node) {
+
+    }
+};

@@ -1,12 +1,20 @@
+import Promise from 'es6-promise';
 import JedisClass from './class';
 import JedisComponent from './component';
-import JedisSocketIo from './io/socket.io';
+import JedisElement from './element';
 
 function applyTree(app, node) {
     node.io = app.io[app.defaultIo];
 
-    if (node.server) {
-        node.server();
+    if (node.server && typeof node.server === 'function') {
+        node.server(app);
+    }
+
+    // Rregister resources
+    if (node.resource) {
+        for (let res in node.resource) {
+            app.page[res] = (app.page[res] || []).concat(node.resource[res]);
+        }
     }
 
     node.props.children.forEach(child => applyTree(app, child));
@@ -17,19 +25,29 @@ class Jedis {
     constructor(tree, options) {
         options = options || {};
 
-        this.bundle = options.bundler;
         this.page = {
             scripts: (options.page && options.page.scripts) || []
         };
-        this.io = {};
+        this.index = {};
+        this.tree = applyTree(this, tree); // TODO MAKE THIS ONE CREATE COMPONENTS PATH
+    }
 
-        let ioEngines = options.io || {};
-        for (let name in ioEngines) {
-            this.io[name] = ioEngines[name](this);
+    handlePayload(payload) {
+        let path = payload.path,
+            context = payload.context,
+            component = this.index[path];
+
+        if (component) {
+            if (typeof component.handlePayload === 'function') {
+                // Handle state to set it for the current context
+                // context could have a .state, .clientId, .room ...
+                return Promise.resolve(component.handleUpdate(context));
+                // If component.handleUpdate calls a this.setState(newState),
+                // this shall trigger its bound io(s) (if any) to update its related views
+            }
+        } else {
+            console.log('WARN', `App has no component at path ${path}`);
         }
-
-        this.defaultIo = options.defaultIo || Object.keys(ioEngines)[0];
-        this.tree = applyTree(this, tree);
     }
 }
 
@@ -37,19 +55,16 @@ Jedis.createPage = function createPage(tree, options) {
     return new Jedis(tree, options);
 };
 
-Jedis.createClass = function createClass(attrs) {
-    return new JedisClass(attrs);
+Jedis.createComponent = function createComponent(componentClass, props, ...children) {
+    let component = new JedisComponent(componentClass);
+    component.props = props || {};
+    component.props.children = children || [];
+
+    return component;
 };
 
-Jedis.createElement = function createElement(component, props, ...children) {
-    let element = new JedisComponent(component);
-    element.props = props || {};
-    element.props.children = children || [];
-    return element;
-};
-
-Jedis.engine = {
-    io: JedisSocketIo
+Jedis.element = function j(element, attrs, ...children) {
+    return new JedisElement(element, attrs, children);
 };
 
 export default Jedis;

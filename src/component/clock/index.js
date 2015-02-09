@@ -1,16 +1,30 @@
-import Jedis from '../../jedis/app';
+let j = require('jedis').element;
 
-export default Jedis.createClass({
-    server: function () {
+export default {
+
+    onComponentMount: function (app) {
         console.log('Installing clock');
-
-        this.io.on('connection', socket => {
-            console.log(socket.handshake);
-            socket.join('clock');
-        });
-
-        setInterval(() => this.io.to('clock').emit('clock', (new Date()).toLocaleDateString()), 1000);
+        setInterval(() => this.setState({
+            dateString: (new Date()).toLocaleDateString()
+        }), 1000);
     },
 
-    client: require.resolve('./clock.cli.js')
-});
+    handlePayload: function (payload) {
+        console.log('Clock received', JSON.stringify(payload));
+    },
+
+    render: function () {
+        // Render based on a given a special state: this.variables actually reference a field mapped to the client(s)
+        // Check usefulness: do we need to see divs and attributes here?
+        // Maybe not divs but another abstraction?
+        // Do we want to make a web page or an API? Web page probably!
+        return
+        j('div', null,
+            this.dateString
+        );
+    },
+
+    resource: {
+        js: require.resolve('./clock.cli.js')
+    }
+};
