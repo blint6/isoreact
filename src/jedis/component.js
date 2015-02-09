@@ -1,4 +1,4 @@
-class JedisClass {
+class JedisComponent {
     constructor(attrs) {
         for (let a in attrs) {
             this[a] = attrs[a];
@@ -6,4 +6,4 @@ class JedisClass {
     }
 }
 
-export default JedisClass;
+export default JedisComponent;

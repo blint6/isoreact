@@ -15,20 +15,24 @@ export default function browserifyBundler(app, options) {
         serveFile = serveDir + 'bundle.js';
 
     // Include bundle in page's scripts
-    if (app.page.scripts.indexOf(serveFile) < 0) {;
+    if (app.page.scripts.indexOf(serveFile) < 0) {
         app.page.scripts.push(serveFile);
     }
 
     mkdirp.sync(bundleDir);
     mkdirp.sync(serveDir);
 
-    let clientScripts = Object.keys(app.components).map(c => app.components[c].client),
-        jsBundle = template(fs.readFileSync(__dirname + '/bundle.js.tpt'))({
-            components: clientScripts,
-            io: {
-                ns: app.io.name === undefined ? '/' : app.io.name
-            }
-        });
+    let redop = (arr, component) => arr.concat(component.client, component.props.children.reduce(redop, []));
+    let clientScripts = [app.tree]
+        .reduce(redop, [])
+        .reduce((arr, el) => el ? arr.concat(el) : arr, []);
+
+    let jsBundle = template(fs.readFileSync(__dirname + '/bundle.js.tpt'))({
+        components: clientScripts,
+        io: {
+            ns: app.io.name === undefined ? '/' : app.io.name
+        }
+    });
 
     fs.writeFileSync(bundleFile, jsBundle);
 

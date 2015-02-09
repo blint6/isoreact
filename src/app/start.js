@@ -3,8 +3,10 @@ import express from 'express';
 import morgan from 'morgan';
 import consolidate from 'consolidate';
 import bundle from '../jedis-browserify/jedis-browserify';
-import App from '../jedis/app';
+import Jedis from '../jedis/app';
 let singlepage = require('../jedis-express/jedis-express').singlepage;
+
+import Clock from 'clock';
 
 let app = express();
 
@@ -23,9 +25,12 @@ let server, io;
 server = app.listen(3000);
 io = socketio.listen(server);
 
-var jedis = new App({
-    io: io,
-    components: [require.resolve('clock')]
+let componentTree = Jedis.createElement(Clock);
+
+var jedis = Jedis.createPage(componentTree, {
+    io: {
+        socket: Jedis.engine.io(io)
+    }
 });
 
 bundle(jedis, './tmp/')
