@@ -25,18 +25,30 @@ let server, io;
 server = app.listen(3000);
 io = socketio.listen(server);
 
-let componentTree = Jedis.createComponent(Clock);
+let clock = Jedis.createComponent(Clock);
+let componentTree = clock;
 
-var jedis = Jedis.createPage(componentTree, {
-    io: {
-        socket: Jedis.engine.io(io)
-    }
-});
+var jedis = Jedis.createPage(componentTree, {});
 
 bundle(jedis, './tmp/')
     .then(serveFile => app.use('/script/bundle.js', express.static(serveFile)));
 
 app.use('/', singlepage(jedis, 'index.jade'));
+
+
+// !! IO tryout !!
+io.on('connection', socket => {
+    console.log(socket.handshake);
+    socket.join('clock');
+});
+
+setInterval(() => jedis.push({
+        context: undefined,
+        path: '/',
+        payload: undefined
+    })
+    .then(payload => payload && io.to('clock').emit('clock', payload)), 1000);
+
 
 export default {
     jedis,

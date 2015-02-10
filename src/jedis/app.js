@@ -1,10 +1,10 @@
-import Promise from 'es6-promise';
-import JedisClass from './class';
-import JedisComponent from './component';
-import JedisElement from './element';
+let Promise = require('rsvp').Promise;
+let JedisComponent = require('./component');
+let JedisElement = require('./element');
 
 function applyTree(app, node) {
-    node.io = app.io[app.defaultIo];
+    let path = '/';
+    app.index[path] = node;
 
     if (node.server && typeof node.server === 'function') {
         node.server(app);
@@ -32,21 +32,33 @@ class Jedis {
         this.tree = applyTree(this, tree); // TODO MAKE THIS ONE CREATE COMPONENTS PATH
     }
 
-    handlePayload(payload) {
-        let path = payload.path,
-            context = payload.context,
-            component = this.index[path];
+    push(payload) {
+        let context = payload.context,
+            component = this.index[payload.path];
+
+        // TODO handle middlewares
 
         if (component) {
-            if (typeof component.handlePayload === 'function') {
-                // Handle state to set it for the current context
-                // context could have a .state, .clientId, .room ...
-                return Promise.resolve(component.handleUpdate(context));
-                // If component.handleUpdate calls a this.setState(newState),
-                // this shall trigger its bound io(s) (if any) to update its related views
-            }
+            return Promise.resolve(component.props.stateResolver.resolveState(context))
+                .then(state => {
+                    if (state === undefined)
+                        return component.class.getInitialState() || {};
+                    else
+                        return state;
+                })
+                .then(state => component._handleState(state))
+                .then(newState => {
+                    if (newState !== undefined)
+                        return Promise.resolve(component.props.stateResolver.setState(context, newState))
+                            .then(() => ({
+                                path: payload.path,
+                                context: context,
+                                state: newState
+                            }));
+                });
         } else {
-            console.log('WARN', `App has no component at path ${path}`);
+            console.log('WARN', `App has no component at path ${payload.path}`);
+            throw Error('No component found matching payload');
         }
     }
 }
@@ -56,11 +68,7 @@ Jedis.createPage = function createPage(tree, options) {
 };
 
 Jedis.createComponent = function createComponent(componentClass, props, ...children) {
-    let component = new JedisComponent(componentClass);
-    component.props = props || {};
-    component.props.children = children || [];
-
-    return component;
+    return new JedisComponent(componentClass, props, children);
 };
 
 Jedis.element = function j(element, attrs, ...children) {

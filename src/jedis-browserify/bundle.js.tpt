@@ -13,3 +13,8 @@ if (typeof component === 'function') {
     component(jedis);
 }
 <% }); %>
+
+// Dirty IO tests here
+io.on('clock', function(data) {
+    console.log(JSON.stringify(data));
+});

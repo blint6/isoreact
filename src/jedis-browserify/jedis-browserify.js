@@ -30,7 +30,7 @@ export default function browserifyBundler(app, options) {
     let jsBundle = template(fs.readFileSync(__dirname + '/bundle.js.tpt'))({
         components: clientScripts,
         io: {
-            ns: app.io.name === undefined ? '/' : app.io.name
+            ns: '/'
         }
     });
 
