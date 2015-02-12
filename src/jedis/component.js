@@ -7,6 +7,8 @@ let defaultStateResolver = {
 class JedisComponent {
     constructor(componentClass, props, children) {
         this.class = componentClass;
+        this.class.client = this.class.client || {};
+        this.class.resource = this.class.resource || {};
         this.class.getInitialState = this.class.getInitialState || returnObject;
         this.props = props || {};
         this.props.children = children || [];

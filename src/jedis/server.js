@@ -2,22 +2,17 @@ let Promise = require('rsvp').Promise;
 let JedisComponent = require('./component');
 let JedisElement = require('./element');
 
-function applyTree(app, node) {
-    let path = '/';
-    app.index[path] = node;
+function applyTree(app, node, path = '', i = 0) {
+    path = path + '/' + i;
+
+    app.component.index[path] = node;
+    app.component.path[node] = path;
 
     if (node.server && typeof node.server === 'function') {
         node.server(app);
     }
 
-    // Rregister resources
-    if (node.resource) {
-        for (let res in node.resource) {
-            app.page[res] = (app.page[res] || []).concat(node.resource[res]);
-        }
-    }
-
-    node.props.children.forEach(child => applyTree(app, child));
+    node.props.children.forEach((child, j) => applyTree(app, child, path, j));
     return node;
 }
 
@@ -25,16 +20,16 @@ class Jedis {
     constructor(tree, options) {
         options = options || {};
 
-        this.page = {
-            scripts: (options.page && options.page.scripts) || []
+        this.component = {
+            index: {},
+            path: {}
         };
-        this.index = {};
-        this.tree = applyTree(this, tree); // TODO MAKE THIS ONE CREATE COMPONENTS PATH
+        this.component.tree = applyTree(this, tree);
     }
 
     push(payload) {
         let context = payload.context,
-            component = this.index[payload.path];
+            component = this.component.index[payload.path];
 
         // TODO handle middlewares
 

@@ -3,7 +3,7 @@ import express from 'express';
 import morgan from 'morgan';
 import consolidate from 'consolidate';
 import bundle from '../jedis-browserify/jedis-browserify';
-import Jedis from '../jedis/app';
+import Jedis from '../jedis/server';
 let singlepage = require('../jedis-express/jedis-express').singlepage;
 
 import Clock from 'clock';
@@ -30,10 +30,11 @@ let componentTree = clock;
 
 var jedis = Jedis.createPage(componentTree, {});
 
-bundle(jedis, './tmp/')
-    .then(serveFile => app.use('/script/bundle.js', express.static(serveFile)));
-
-app.use('/', singlepage(jedis, 'index.jade'));
+bundle(jedis, {
+        workdir: './tmp/'
+    })
+    .then(serveFile => app.use('/script/bundle.js', express.static(serveFile)))
+    .then(() => app.use('/', singlepage(jedis, 'index.jade')));
 
 
 // !! IO tryout !!
@@ -44,7 +45,7 @@ io.on('connection', socket => {
 
 setInterval(() => jedis.push({
         context: undefined,
-        path: '/',
+        path: '/0',
         payload: undefined
     })
     .then(payload => payload && io.to('clock').emit('clock', payload)), 1000);

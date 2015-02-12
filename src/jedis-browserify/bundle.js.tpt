@@ -1,18 +1,20 @@
 'use strict';
 
+<% if (jedis) { %>var Jedis = require('<%= jedis.replace(/\\/g, '\\\\').replace(/'/g, '\\\'') %>');<% } %>
 var io = require('socket.io-client')('http://localhost:3000<%= io.ns %>');
 var jedis = {
     io: io
 };
-var component;
+var components = {};
 
-<% components.forEach(function(component) { %>
-component = require('<%= component.replace(/\\/g, '\\\\').replace(/'/g, '\\\'') %>');
+<%
+Object.keys(components).forEach(function (path) {
+    if (components[path].class.client[media]) {
+%>
+components['<%= path %>'] = Jedis.createComponent(require('<%= components[path].class.client[media].replace(/\\/g, '\\\\').replace(/'/g, '\\\'') %>'));
+<% }}); %>
 
-if (typeof component === 'function') {
-    component(jedis);
-}
-<% }); %>
+module.exports = Jedis.createApp(components);
 
 // Dirty IO tests here
 io.on('clock', function(data) {

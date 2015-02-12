@@ -10,7 +10,7 @@ export function singlepage(app, template, options) {
         }),
         scripts = [];
 
-    app.page.scripts.forEach(script => {
+    (app.page && app.page.scripts || []).forEach(script => {
         let scriptPath, i = 0;
 
         // Extract the script path from the specified base if possible or from file name

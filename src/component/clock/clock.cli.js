@@ -15,9 +15,8 @@ export default {
         // Check usefulness: do we need to see divs and attributes here?
         // Maybe not divs but another abstraction?
         // Do we want to make a web page or an API? Web page probably!
-        return
-        j('div', null,
-            this.state.dateString
+        return j('div', null,
+            this./*state.*/dateString
         );
     },
 };

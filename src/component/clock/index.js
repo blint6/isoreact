@@ -16,7 +16,7 @@ export default {
         };
     },
 
-    resource: {
-        js: require.resolve('./clock.cli.js')
-    }
+    client: {
+        default: require.resolve('./clock.cli.js')
+    },
 };
