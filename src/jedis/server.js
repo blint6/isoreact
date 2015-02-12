@@ -56,6 +56,10 @@ class Jedis {
             throw Error('No component found matching payload');
         }
     }
+
+    pathOf(component) {
+        return this.component.path[component];
+    }
 }
 
 Jedis.createPage = function createPage(tree, options) {

@@ -45,10 +45,16 @@ io.on('connection', socket => {
 
 setInterval(() => jedis.push({
         context: undefined,
-        path: '/0',
+        path: jedis.pathOf(clock),
         payload: undefined
     })
-    .then(payload => payload && io.to('clock').emit('clock', payload)), 1000);
+    .then(payload => {
+        if (payload) {
+            let res = {};
+            res[payload.path] = payload.state;
+            io.to('clock').emit('clock', res);
+        }
+    }), 1000);
 
 
 export default {

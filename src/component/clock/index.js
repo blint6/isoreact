@@ -1,4 +1,4 @@
-let getDate = (() => (new Date()).toLocaleDateString());
+let getDate = (() => (new Date()).toLocaleString());
 
 export default {
 
@@ -10,7 +10,7 @@ export default {
     },
 
     handleState: function (state) {
-        console.log('Clock received', JSON.stringify(state));
+        // console.log('Clock received', JSON.stringify(state));
         return {
             dateString: getDate()
         };

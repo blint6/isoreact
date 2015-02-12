@@ -11,12 +11,19 @@ var components = {};
 Object.keys(components).forEach(function (path) {
     if (components[path].class.client[media]) {
 %>
-components['<%= path %>'] = Jedis.createComponent(require('<%= components[path].class.client[media].replace(/\\/g, '\\\\').replace(/'/g, '\\\'') %>'));
+components['<%= path %>'] = {
+    class: require('<%= components[path].class.client[media].replace(/\\/g, '\\\\').replace(/'/g, '\\\'') %>')
+};
 <% }}); %>
 
-module.exports = Jedis.createApp(components);
+var app = Jedis.createApp(components);
 
 // Dirty IO tests here
 io.on('clock', function(data) {
-    console.log(JSON.stringify(data));
+    // console.log(JSON.stringify(data));
+    app.push(data);
 });
+
+app.render();
+
+module.exports = app;

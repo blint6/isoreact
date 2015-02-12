@@ -16,7 +16,7 @@ export default {
         // Maybe not divs but another abstraction?
         // Do we want to make a web page or an API? Web page probably!
         return j('div', null,
-            this./*state.*/dateString
+            this.state.dateString
         );
     },
 };
