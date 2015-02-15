@@ -20,7 +20,7 @@ export default function browserifyBundler(app, options = {}) {
     mkdirp.sync(serveDir);
 
     let jsBundle = template(fs.readFileSync(__dirname + '/bundle.js.tpt'))({
-        jedis: require.resolve('../jedis/client.js'),
+        jedis: require.resolve('jedis/client.js'),
         media: media,
         components: app.component.index,
         io: {

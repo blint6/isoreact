@@ -3,7 +3,7 @@ import express from 'express';
 import morgan from 'morgan';
 import consolidate from 'consolidate';
 import bundle from '../jedis-browserify/jedis-browserify';
-import Jedis from '../jedis/server';
+import Jedis from 'jedis';
 let singlepage = require('../jedis-express/jedis-express').singlepage;
 
 import Clock from 'clock';
