@@ -19,9 +19,9 @@ components['<%= path %>'] = {
 var app = Jedis.createApp(components);
 
 // Dirty IO tests here
-io.on('clock', function(data) {
+io.on('dispatch', function(data) {
     // console.log(JSON.stringify(data));
-    app.push(data);
+    app.dispatch(data);
 });
 
 app.render();

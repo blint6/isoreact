@@ -25,14 +25,16 @@ let server, io;
 server = app.listen(3000);
 io = socketio.listen(server);
 
-let clock = Jedis.createComponent(Clock);
+let clock = Jedis.createComponent(Clock),
+    clockCtx = clock.context();
+
 let componentTree = clock;
 
 var jedis = Jedis.createPage(componentTree, {});
 
 bundle(jedis, {
-        workdir: './tmp/'
-    })
+    workdir: './tmp/'
+})
     .then(serveFile => app.use('/script/bundle.js', express.static(serveFile)))
     .then(() => app.use('/', singlepage(jedis, 'index.jade')));
 
@@ -40,24 +42,15 @@ bundle(jedis, {
 // !! IO tryout !!
 io.on('connection', socket => {
     console.log(socket.handshake);
-    socket.join('clock');
+    socket.join('jedis');
 });
 
-setInterval(() => jedis.push({
-        context: undefined,
-        path: jedis.pathOf(clock),
-        payload: undefined
-    })
-    .then(payload => {
-        if (payload) {
-            let res = {};
-            res[payload.path] = payload.state;
-            io.to('clock').emit('clock', res);
-        }
-    }), 1000);
+jedis.on('newState', (context, payload) => io.to('jedis').emit('dispatch', payload));
 
+setInterval(() => clockCtx.setState(), 1000);
 
-export default {
+export
+default {
     jedis,
     server,
     io
