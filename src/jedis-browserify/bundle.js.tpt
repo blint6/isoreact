@@ -2,9 +2,6 @@
 
 <% if (jedis) { %>var Jedis = require('<%= jedis.replace(/\\/g, '\\\\').replace(/'/g, '\\\'') %>');<% } %>
 var io = require('socket.io-client')('http://localhost:3000<%= io.ns %>');
-var jedis = {
-    io: io
-};
 var components = {};
 
 <%
@@ -16,14 +13,35 @@ components['<%= path %>'] = {
 };
 <% }}); %>
 
-var app = Jedis.createApp(components);
+var app = Jedis.createApp(components, {
+	renderer: {
+		render: function(component, cb) {
+			component.reactClass = component.reactClass || React.createClass({
+				render: component.class.render.bind({state: component.state}, React.createElement)
+			});
+
+			component.reactElement = component.reactElement || React.createElement(component.reactClass);
+			return component.reactElement;
+		},
+
+		setState: function(component, state) {
+			if (component.reactElement)
+				component.reactElement.setState(state);
+		}
+	}
+});
+
+var rendered;
 
 // Dirty IO tests here
 io.on('dispatch', function(data) {
     // console.log(JSON.stringify(data));
     app.dispatch(data);
-});
 
-app.render();
+    if (!rendered) {
+    	rendered = true;
+		React.render(app.render(), document.getElementById('body'));
+    }
+});
 
 module.exports = app;

@@ -20,6 +20,8 @@ app.set('view engine', 'html');
 app.set('views', __dirname + '/template');
 app.enable('jsonp callback');
 
+app.use('/vendor', express.static(process.cwd() + '/bower_components'));
+
 let server, io;
 
 server = app.listen(3000);
@@ -37,7 +39,6 @@ bundle(jedis, {
 })
     .then(serveFile => app.use('/script/bundle.js', express.static(serveFile)))
     .then(() => app.use('/', singlepage(jedis, 'index.jade')));
-
 
 // !! IO tryout !!
 io.on('connection', socket => {
