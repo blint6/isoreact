@@ -2,6 +2,7 @@ import socketio from 'socket.io';
 import express from 'express';
 import morgan from 'morgan';
 import consolidate from 'consolidate';
+let Promise = require('rsvp').Promise;
 import bundle from '../jedis-browserify/jedis-browserify';
 import Jedis from 'jedis';
 let singlepage = require('../jedis-express/jedis-express').singlepage;
@@ -52,7 +53,13 @@ setInterval(() => clockCtx.setState(), 1000);
 
 export
 default {
-    jedis,
-    server,
-    io
+    jedis: jedis,
+    rebundle: function() {
+        bundle(jedis, {
+            workdir: './tmp/'
+        });
+    },
+    stop: function() {
+        return new Promise((resolve, reject) => server.close(err => err ? reject(err) : resolve()));
+    }
 };

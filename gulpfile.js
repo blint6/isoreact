@@ -1,5 +1,6 @@
 'use strict';
 
+var path = require('path');
 var gulp = require('gulp');
 var del = require('del');
 var es = require('event-stream');
@@ -11,7 +12,7 @@ var watch = require('gulp-watch');
 var to5 = require('gulp-6to5');
 var uglify = require('gulp-uglify');
 
-var getBundleName = function () {
+var getBundleName = function() {
     var version = require('./package.json').version;
     var name = require('./package.json').name;
     return version + '.' + name + '.' + 'min';
@@ -27,13 +28,13 @@ var paths = {
 
 var app;
 
-gulp.task('clean', function (cb) {
+gulp.task('clean', function(cb) {
     del.sync('build', {
         force: true
     }, cb);
 });
 
-gulp.task('transpile-app', function () {
+gulp.task('transpile-app', function() {
     function transpile(strm) {}
 
     return gulp.src(paths.app, {
@@ -47,7 +48,7 @@ gulp.task('transpile-app', function () {
         .pipe(gulp.dest('build'));
 });
 
-gulp.task('transpile-component', function () {
+gulp.task('transpile-component', function() {
     return gulp.src(paths.component)
         .pipe(changed('build/node_modules'))
         .pipe(insert.prepend('\'use strict\';\n'))
@@ -57,7 +58,7 @@ gulp.task('transpile-component', function () {
         .pipe(gulp.dest('build/node_modules'));
 });
 
-gulp.task('copy', function () {
+gulp.task('copy', function() {
     return es.merge(
         gulp.src(paths.appasset, {
             base: 'src'
@@ -73,7 +74,7 @@ gulp.task('copy', function () {
     );
 });
 
-gulp.task('test', ['transpile-app', 'transpile-component'], function () {
+gulp.task('test', ['transpile-app', 'transpile-component'], function() {
     return gulp
         .src('build/**/*.spec.js', {
             read: false
@@ -81,22 +82,29 @@ gulp.task('test', ['transpile-app', 'transpile-component'], function () {
         .pipe(mocha());
 });
 
-gulp.task('run', ['copy', 'transpile-app', 'transpile-component'], function () {
-    if (app) {
-        app.server.close();
-        delete require.cache['./build/app/start'];
-    }
-
+gulp.task('run', ['copy', 'transpile-app', 'transpile-component', 'clearCache'], function() {
     app = require('./build/app/start');
 });
 
-gulp.task('rebundle', ['copy', 'transpile-component'], function () {
-    app.jedis.bundle();
+gulp.task('clearCache', function() {
+    var build = path.join(__dirname, 'build');
+    Object.keys(require.cache).forEach(function(key) {
+        if (key.startsWith(build))
+            delete require.cache[key];
+    });
+
+    if (app) {
+        return app.stop();
+    }
 });
 
-gulp.task('watch', function () {
+gulp.task('rebundle', ['copy', 'transpile-component'], function() {
+    app.rebundle();
+});
+
+gulp.task('watch', function() {
     gulp.start('run');
     gulp.watch(paths.app, ['run']);
-    gulp.watch(paths.component, ['rebundle']);
-    gulp.watch(paths.asset, ['copy']);
+    gulp.watch(['src/jedis-browserify/bundle.js.tpt', paths.component], ['rebundle']);
+    gulp.watch([paths.appasset, paths.componentasset], ['copy']);
 });
