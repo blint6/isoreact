@@ -89,7 +89,7 @@ gulp.task('run', ['copy', 'transpile-app', 'transpile-component', 'clearCache'],
 gulp.task('clearCache', function() {
     var build = path.join(__dirname, 'build');
     Object.keys(require.cache).forEach(function(key) {
-        if (key.startsWith(build))
+        if (key.indexOf(build) === 0)
             delete require.cache[key];
     });
 

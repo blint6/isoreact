@@ -7,7 +7,7 @@ from 'es6-promise';
 import template from 'lodash.template';
 import browserify from 'browserify';
 
-export default function browserifyBundler(app, options = {}) {
+module.exports = function browserifyBundler(app, options = {}) {
     let workdir = options.workdir,
         media = options.media || 'default',
         variable = options.variable || 'jedisApp',
@@ -16,16 +16,20 @@ export default function browserifyBundler(app, options = {}) {
         serveDir = workdir + '/serve/',
         serveFile = serveDir + 'bundle.js';
 
+    let tRequire = path => 'require(\'' + path.replace(/\\/g, '\\\\').replace(/'/g, '\\\'') + '\')';
+
     mkdirp.sync(bundleDir);
     mkdirp.sync(serveDir);
 
     let jsBundle = template(fs.readFileSync(__dirname + '/bundle.js.tpt'))({
+        tRequire: tRequire,
         jedis: require.resolve('jedis/client.js'),
         media: media,
         components: app.component.index,
         io: {
             ns: '/'
-        }
+        },
+        mixins: [require.resolve('../jedis-react')]
     });
 
     fs.writeFileSync(bundleFile, jsBundle);
@@ -33,12 +37,12 @@ export default function browserifyBundler(app, options = {}) {
     return new Promise((resolve, reject) => {
         let writeStream = fs.createWriteStream(serveFile);
         browserify(bundleFile, {
-                debug: true,
-                standalone: variable
-            })
+            debug: true,
+            standalone: variable
+        })
             .bundle()
             .pipe(writeStream);
         writeStream.on('finish', () => resolve(serveFile));
         writeStream.on('error', err => reject(err));
     });
-}
+};

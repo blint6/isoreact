@@ -72,7 +72,7 @@
 
     // Custom Globals
     "globals": {
-      "angular"     : true,
+      "React"     : true,
       "define"      : false,
       "jasmine"     : false,
       "require"     : false,

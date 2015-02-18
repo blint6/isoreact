@@ -1,6 +1,6 @@
 'use strict';
 
-<% if (jedis) { %>var Jedis = require('<%= jedis.replace(/\\/g, '\\\\').replace(/'/g, '\\\'') %>');<% } %>
+<% if (jedis) { %>var Jedis = <%= tRequire(jedis) %>;<% } %>
 var io = require('socket.io-client')('http://localhost:3000<%= io.ns %>');
 var components = {};
 
@@ -9,26 +9,12 @@ Object.keys(components).forEach(function (path) {
     if (components[path].class.client[media]) {
 %>
 components['<%= path %>'] = {
-    class: require('<%= components[path].class.client[media].replace(/\\/g, '\\\\').replace(/'/g, '\\\'') %>')
+    class: <%= tRequire(components[path].class.client[media]) %>
 };
 <% }}); %>
 
 var app = Jedis.createApp(components, {
-	renderer: {
-		render: function(component, cb) {
-			component.reactClass = component.reactClass || React.createClass({
-				render: component.class.render.bind({state: component.state}, React.createElement)
-			});
-
-			component.reactElement = component.reactElement || React.createElement(component.reactClass);
-			return component.reactElement;
-		},
-
-		setState: function(component, state) {
-			if (component.reactElement)
-				component.reactElement.setState(state);
-		}
-	}
+	mixins: [<%= mixins.map(function(mixin){return tRequire(mixin)}).join(', ') %>]
 });
 
 var rendered;
