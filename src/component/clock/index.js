@@ -1,19 +1,27 @@
 let getDate = (() => (new Date()).toLocaleString());
 
-export default {
+module.exports = {
 
-    getInitialState: function (app) {
+    name: 'clock',
+
+    deps: {
+        frenchClock: function(j) {
+            return j(null, {});
+        }
+    },
+
+    getInitialState: function(context) {
         console.log('Installing clock');
         return {
             dateString: getDate()
         };
     },
 
-    handleState: function (state) {
+    handleState: function(state) {
         // console.log('Clock received', JSON.stringify(state));
-        return {
+        this.setState({
             dateString: getDate()
-        };
+        });
     },
 
     client: {

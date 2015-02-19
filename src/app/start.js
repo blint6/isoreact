@@ -49,7 +49,7 @@ io.on('connection', socket => {
 
 jedis.on('newState', (context, payload) => io.to('jedis').emit('dispatch', payload));
 
-setInterval(() => clockCtx.setState(), 1000);
+setInterval(() => clockCtx.handleState(), 1000);
 
 export
 default {
