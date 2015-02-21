@@ -5,17 +5,26 @@ var io = require('socket.io-client')('http://localhost:3000<%= io.ns %>');
 var components = {};
 
 <%
-Object.keys(components).forEach(function (path) {
-    if (components[path].class.client[media]) {
+Object.keys(components).forEach(function (id) {
+    if (components[id].class.client[media]) {
 %>
-components['<%= path %>'] = {
-    class: <%= tRequire(components[path].class.client[media]) %>
-};
+components['<%= id %>'] = <%= tRequire(components[id].class.client[media]) %>;
 <% }}); %>
 
-var app = Jedis.createApp(components, {
-	mixins: [<%= mixins.map(function(mixin){return tRequire(mixin)}).join(', ') %>]
+var options = <%= JSON.stringify(jedisOptions) %>;
+
+options.component.mixins = [<%=
+	jedisOptions.component.mixins
+		.map(function(mixin) {return tRequire(mixin)})
+		.join(', ') %>];
+
+options.component.mixins.push({
+	_loadComponentClass: function (id) {
+		return components[id];
+	}
 });
+
+var app = Jedis.createApp(<%= JSON.stringify(tree) %>, options);
 
 var rendered;
 

@@ -5,8 +5,10 @@ module.exports = {
     name: 'clock',
 
     deps: {
-        frenchClock: function(j) {
-            return j(null, {});
+        frenchClock: function() {
+            return {
+                dateString: this.state.dateString
+            };
         }
     },
 

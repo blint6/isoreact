@@ -24,12 +24,17 @@ module.exports = function browserifyBundler(app, options = {}) {
     let jsBundle = template(fs.readFileSync(__dirname + '/bundle.js.tpt'))({
         tRequire: tRequire,
         jedis: require.resolve('jedis/client.js'),
+        jedisOptions: {
+            component: {
+                mixins: [require.resolve('../jedis-react')],
+            }
+        },
         media: media,
         components: app.component.index,
+        tree: app.component.root,
         io: {
             ns: '/'
         },
-        mixins: [require.resolve('../jedis-react')]
     });
 
     fs.writeFileSync(bundleFile, jsBundle);
