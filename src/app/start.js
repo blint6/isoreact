@@ -1,13 +1,16 @@
-import socketio from 'socket.io';
-import express from 'express';
-import morgan from 'morgan';
-import consolidate from 'consolidate';
+let socketio = require('socket.io');
+let express = require('express');
+let morgan = require('morgan');
+let consolidate = require('consolidate');
 let Promise = require('rsvp').Promise;
-import bundle from '../jedis-browserify/jedis-browserify';
-import Jedis from 'jedis';
+let bundle = require('../jedis-browserify/jedis-browserify');
+let Jedis = require('jedis');
 let singlepage = require('../jedis-express/jedis-express').singlepage;
 
-import Clock from 'clock/frenchClock';
+let ProtoBanner = require('ProtoBanner');
+let ProtoTitle = require('ProtoBanner/ProtoTitle');
+
+let Clock = require('clock/frenchClock');
 
 let app = express();
 
@@ -28,12 +31,17 @@ let server, io;
 server = app.listen(3000);
 io = socketio.listen(server);
 
-let clock = Jedis.createComponent(Clock),
-    clockCtx = clock.context();
+let banner = Jedis.createComponent(ProtoBanner, null,
+    Jedis.createComponent(ProtoTitle, {
+        title: 'Jedis with <3'
+    }));
+let clock = Jedis.createComponent(Clock);
 
-let componentTree = clock;
+let clockCtx = clock.context();
 
-var jedis = Jedis.createPage(componentTree, {});
+let componentTree = Jedis.createComponent(null, null, banner, clock);
+
+let jedis = Jedis.createPage(componentTree, {});
 
 bundle(jedis, {
     workdir: './tmp/'
@@ -51,8 +59,7 @@ jedis.on('newState', (context, payload) => io.to('jedis').emit('dispatch', paylo
 
 setInterval(() => clockCtx.handleState(), 1000);
 
-export
-default {
+module.exports = {
     jedis: jedis,
     rebundle: function() {
         bundle(jedis, {

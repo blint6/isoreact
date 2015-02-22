@@ -1,6 +1,15 @@
+let defaultRender = function(React) {
+    return React.createElement('div', null, this.props.children);
+};
+
 module.exports = {
 
     _render: function() {
+
+        let children = this.children.map(child => child._render());
+
+        if (!this.render)
+            this.render = defaultRender;
 
         if (!this.react) {
             let render = this.render,
@@ -19,7 +28,6 @@ module.exports = {
             };
         }
 
-        let children = this.props.children.map(child => child._render());
         this.react.element = React.createElement(this.react.class, this.props, children);
 
         return this.react.element;
