@@ -4,14 +4,6 @@ module.exports = {
 
     name: 'clock',
 
-    deps: {
-        frenchClock: function() {
-            return {
-                dateString: this.state.dateString
-            };
-        }
-    },
-
     getInitialState: function(context) {
         console.log('Installing clock');
         return {
@@ -20,7 +12,7 @@ module.exports = {
     },
 
     handleState: function(state) {
-        // console.log('Clock received', JSON.stringify(state));
+        //console.log('Clock received', JSON.stringify(state));
         this.setState({
             dateString: getDate()
         });

@@ -7,7 +7,7 @@ import bundle from '../jedis-browserify/jedis-browserify';
 import Jedis from 'jedis';
 let singlepage = require('../jedis-express/jedis-express').singlepage;
 
-import Clock from 'clock';
+import Clock from 'clock/frenchClock';
 
 let app = express();
 

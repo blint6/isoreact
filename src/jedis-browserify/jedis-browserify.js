@@ -17,6 +17,17 @@ module.exports = function browserifyBundler(app, options = {}) {
         serveFile = serveDir + 'bundle.js';
 
     let tRequire = path => 'require(\'' + path.replace(/\\/g, '\\\\').replace(/'/g, '\\\'') + '\')';
+    let components = [];
+
+    Object.keys(app.component.index).forEach(id => {
+        let clientComponent = app.component.index[id].getClientResource(media);
+        if (clientComponent.base)
+            components.push({
+                id: id,
+                base: clientComponent.base,
+                mixins: clientComponent.mixins
+            });
+    });
 
     mkdirp.sync(bundleDir);
     mkdirp.sync(serveDir);
@@ -29,8 +40,7 @@ module.exports = function browserifyBundler(app, options = {}) {
                 mixins: [require.resolve('../jedis-react')],
             }
         },
-        media: media,
-        components: app.component.index,
+        components: components,
         tree: app.component.root,
         io: {
             ns: '/'

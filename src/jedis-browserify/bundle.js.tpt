@@ -4,12 +4,14 @@
 var io = require('socket.io-client')('http://localhost:3000<%= io.ns %>');
 var components = {};
 
-<%
-Object.keys(components).forEach(function (id) {
-    if (components[id].class.client[media]) {
-%>
-components['<%= id %>'] = <%= tRequire(components[id].class.client[media]) %>;
-<% }}); %>
+<% components.forEach(function (component) { %>
+	components['<%= component.id %>'] = <%= tRequire(component.base) %>;
+	components['<%= component.id %>'].mixins = [];
+
+	<% component.mixins.forEach(function (mixin) { %>
+		components['<%= component.id %>'].mixins.push(<%= tRequire(mixin) %>);
+	<% }); %>
+<% }); %>
 
 var options = <%= JSON.stringify(jedisOptions) %>;
 
