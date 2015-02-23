@@ -37,7 +37,7 @@ io.on('dispatch', function(data) {
 
     if (!rendered) {
     	rendered = true;
-		React.render(app.render(), document.getElementById('body'));
+		React.render(app.render(), document.body);
     }
 });
 

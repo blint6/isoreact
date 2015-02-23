@@ -43,11 +43,19 @@ let componentTree = Jedis.createComponent(null, null, banner, clock);
 
 let jedis = Jedis.createPage(componentTree, {});
 
+let appReadyResolve,
+    appReadyReject,
+    appReady = new Promise((resolve, reject) => {
+        appReadyResolve = resolve;
+        appReadyReject = reject;
+    });
+
 bundle(jedis, {
     workdir: './tmp/'
 })
     .then(serveFile => app.use('/script/bundle.js', express.static(serveFile)))
-    .then(() => app.use('/', singlepage(jedis, 'index.jade')));
+    .then(() => app.use('/', singlepage(jedis, 'index.jade')))
+    .then(err => err && appReadyReject(err) || appReadyResolve());
 
 // !! IO tryout !!
 io.on('connection', socket => {
@@ -61,11 +69,15 @@ setInterval(() => clockCtx.handleState(), 1000);
 
 module.exports = {
     jedis: jedis,
+
+    ready: appReady,
+
     rebundle: function() {
-        bundle(jedis, {
+        return bundle(jedis, {
             workdir: './tmp/'
         });
     },
+
     stop: function() {
         return new Promise((resolve, reject) => server.close(err => err ? reject(err) : resolve()));
     }
