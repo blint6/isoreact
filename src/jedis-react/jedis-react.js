@@ -1,4 +1,6 @@
-let defaultRender = function(React) {
+let React = require('react');
+
+let defaultRender = function() {
     return React.createElement('div', null, this.props.children);
 };
 
@@ -17,6 +19,7 @@ module.exports = {
         if (!this.react._class) {
             let render = this.react.render,
                 initialState = this.state,
+                cptForRender = this,
                 setComposite = (reactComposite => this.react._composite = reactComposite);
 
             this.react.getInitialState = this.react.getInitialState || function() {
@@ -24,7 +27,7 @@ module.exports = {
             };
             this.react.render = function() {
                 setComposite(this);
-                return render.call(this, React);
+                return render.call(this, cptForRender);
             };
 
             this.react._class = React.createClass(this.react);

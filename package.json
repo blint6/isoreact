@@ -41,6 +41,7 @@
     "rsvp": "~3.0.16",
     "envify": "~1.2.1",
     "react": "~0.12.2",
-    "react-bootstrap": "~0.15.1"
+    "react-bootstrap": "~0.15.1",
+    "extend": "~2.0.0"
   }
 }

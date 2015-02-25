@@ -31,6 +31,8 @@ var app = Jedis.createApp(<%= JSON.stringify(tree) %>, options);
 var rendered;
 
 // Dirty IO tests here
+var React = require('react');
+
 io.on('dispatch', function(data) {
     // console.log(JSON.stringify(data));
     app.dispatch(data);

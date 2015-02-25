@@ -1,3 +1,5 @@
+let React = require('react');
+
 module.exports = {
 
 	react: {
@@ -25,7 +27,7 @@ module.exports = {
 			return this.layChildrenOut();
 		},
 
-		render: function(React) {
+		render: function() {
 			return (<div id="protoBanner">{this.props.children}</div>);
 		}
 	}

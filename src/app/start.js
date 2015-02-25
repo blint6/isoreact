@@ -4,13 +4,8 @@ let morgan = require('morgan');
 let consolidate = require('consolidate');
 let Promise = require('rsvp').Promise;
 let bundle = require('../jedis-browserify/jedis-browserify');
-let Jedis = require('jedis');
 let singlepage = require('../jedis-express/jedis-express').singlepage;
-
-let ProtoBanner = require('ProtoBanner');
-let ProtoTitle = require('ProtoBanner/ProtoTitle');
-
-let Clock = require('clock/frenchClock');
+let protoCraft = require('./protoCraft');
 
 let app = express();
 
@@ -26,23 +21,6 @@ app.enable('jsonp callback');
 
 app.use('/vendor', express.static(process.cwd() + '/bower_components'));
 
-let server, io;
-
-server = app.listen(3000);
-io = socketio.listen(server);
-
-let banner = Jedis.createComponent(ProtoBanner, null,
-    Jedis.createComponent(ProtoTitle, {
-        title: 'Jedis with <3'
-    }));
-let clock = Jedis.createComponent(Clock);
-
-let clockCtx = clock.context();
-
-let componentTree = Jedis.createComponent(null, null, banner, clock);
-
-let jedis = Jedis.createPage(componentTree, {});
-
 let appReadyResolve,
     appReadyReject,
     appReady = new Promise((resolve, reject) => {
@@ -50,30 +28,32 @@ let appReadyResolve,
         appReadyReject = reject;
     });
 
-bundle(jedis, {
+bundle(protoCraft, {
     workdir: './tmp/'
 })
     .then(serveFile => app.use('/script/bundle.js', express.static(serveFile)))
-    .then(() => app.use('/', singlepage(jedis, 'index.jade')))
+    .then(() => app.use('/', singlepage(protoCraft, 'index.jade')))
     .then(err => err && appReadyReject(err) || appReadyResolve());
 
-// !! IO tryout !!
+// !! IO tryout !! //
+
+let server = app.listen(3000),
+    io = socketio.listen(server);
+
 io.on('connection', socket => {
     console.log(socket.handshake);
-    socket.join('jedis');
+    socket.join('protoCraft');
 });
 
-jedis.on('newState', (context, payload) => io.to('jedis').emit('dispatch', payload));
-
-setInterval(() => clockCtx.handleState(), 1000);
+protoCraft.on('newState', (context, payload) => io.to('protoCraft').emit('dispatch', payload));
 
 module.exports = {
-    jedis: jedis,
+    jedis: protoCraft,
 
     ready: appReady,
 
     rebundle: function() {
-        return bundle(jedis, {
+        return bundle(protoCraft, {
             workdir: './tmp/'
         });
     },
