@@ -37,10 +37,10 @@ let layout = Jedis.createComponent(Grid, null,
         }, banner)),
     Jedis.createComponent(Row, null,
         Jedis.createComponent(Col, {
-            md: 4
+            md: 3
         }, menu),
         Jedis.createComponent(Col, {
-            md: 8
+            md: 9
         }, clock))
 );
 

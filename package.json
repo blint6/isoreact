@@ -42,6 +42,8 @@
     "envify": "~1.2.1",
     "react": "~0.12.2",
     "react-bootstrap": "~0.15.1",
-    "extend": "~2.0.0"
+    "extend": "~2.0.0",
+    "react-router": "~0.12.4",
+    "es6-symbol": "~2.0.1"
   }
 }

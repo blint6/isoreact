@@ -1,14 +1,17 @@
+let Symbol = require('es6-symbol');
 let React = require('react');
 
+let sReact = Symbol('react'),
+    sAla = Symbol('ala');
 let defaultRender = function() {
     return React.createElement('div', null, this.props.children);
 };
 
 module.exports = {
 
-    _render: function() {
+    render: function() {
 
-        let children = this.children.map(child => child._render());
+        let children = this.children.map(child => child.render());
 
         if (!this.react)
             this.react = {};
@@ -16,11 +19,11 @@ module.exports = {
         if (!this.react.render)
             this.react.render = defaultRender;
 
-        if (!this.react._class) {
+        if (!this.react[sReact]) {
             let render = this.react.render,
                 initialState = this.state,
                 cptForRender = this,
-                setComposite = (reactComposite => this.react._composite = reactComposite);
+                setComposite = (reactComposite => this.react[sReact].composite = reactComposite);
 
             this.react.getInitialState = this.react.getInitialState || function() {
                 return initialState;
@@ -30,16 +33,18 @@ module.exports = {
                 return render.call(this, cptForRender);
             };
 
-            this.react._class = React.createClass(this.react);
+            this.react[sReact] = {
+                class: React.createClass(this.react)
+            };
         }
 
-        this.react._element = React.createElement(this.react._class, this.props, children);
+        this.react[sReact].element = React.createElement(this.react[sReact].class, this.props, children);
 
-        return this.react._element;
+        return this.react[sReact].element;
     },
 
-    _setState: function(state) {
-        if (this.react && this.react._composite)
-            this.react._composite.setState(state);
+    setState: function(state) {
+        if (this.react && this.react[sReact] && this.react[sReact].composite)
+            this.react[sReact].composite.setState(state);
     }
 };

@@ -21,7 +21,7 @@ options.component.mixins = [<%=
 		.join(', ') %>];
 
 options.component.mixins.push({
-	_loadComponentClass: function (id) {
+	loadComponentClass: function (id) {
 		return components[id];
 	}
 });
