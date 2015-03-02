@@ -8,21 +8,28 @@ var components = {};
 	components['<%= component.id %>'] = <%= tRequire(component.base) %>;
 	components['<%= component.id %>'].mixins = [];
 
-	<% component.mixins.forEach(function (mixin) { %>
-		components['<%= component.id %>'].mixins.push(<%= tRequire(mixin) %>);
-	<% }); %>
+	<% for (var name in component.mixins) { %>
+		components['<%= component.id %>'].mixins.push({
+			name: '<%= name.replace('\\', '\\\\').replace('\'', '\\\'') %>',
+			class: <%= tRequire(component.mixins[name]) %>
+		});
+	<% } %>
 <% }); %>
 
 var options = <%= JSON.stringify(jedisOptions) %>;
 
-options.component.mixins = [<%=
-	jedisOptions.component.mixins
+options.mixins = [<%=
+	jedisOptions.mixins
 		.map(function(mixin) {return tRequire(mixin)})
 		.join(', ') %>];
 
-options.component.mixins.push({
-	loadComponentClass: function (id) {
-		return components[id];
+options.mixins.push({
+	name: 'jedis-browserify',
+
+	component: {
+		loadComponentClass: function (id) {
+			return components[id];
+		}
 	}
 });
 
@@ -39,7 +46,7 @@ io.on('dispatch', function(data) {
 
     if (!rendered) {
     	rendered = true;
-		React.render(app.render(), document.body);
+		app.render();
     }
 });
 

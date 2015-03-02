@@ -1,6 +1,7 @@
 'use strict';
 
 var path = require('path');
+var Promise = require('rsvp').Promise;
 var gulp = require('gulp');
 var del = require('del');
 var es = require('event-stream');
@@ -13,6 +14,7 @@ var to5 = require('gulp-6to5');
 var uglify = require('gulp-uglify');
 var sourcemaps = require('gulp-sourcemaps');
 var livereload = require('gulp-livereload');
+var nodemon = require('gulp-nodemon');
 
 var getBundleName = function() {
     var version = require('./package.json').version;
@@ -28,8 +30,6 @@ var paths = {
     componentasset: ['src/component/**', '!src/component/**/*.js']
 };
 
-var app;
-
 gulp.task('clean', function(cb) {
     del.sync('build', {
         force: true
@@ -44,7 +44,7 @@ gulp.task('transpile-app', function() {
         })
         .pipe(changed('build'))
         .pipe(sourcemaps.init())
-        .pipe(insert.prepend('\'use strict\';\n'))
+        .pipe(insert.prepend('\'use strict\';'))
         .pipe(jshint())
         .pipe(jshint.reporter('default'))
         .pipe(to5())
@@ -57,7 +57,7 @@ gulp.task('transpile-component', function() {
     return gulp.src(paths.component)
         .pipe(changed('build/node_modules'))
         .pipe(sourcemaps.init())
-        .pipe(insert.prepend('\'use strict\';\n'))
+        .pipe(insert.prepend('\'use strict\';'))
         .pipe(jshint())
         .pipe(jshint.reporter('default'))
         .pipe(to5())
@@ -83,6 +83,28 @@ gulp.task('copy', function() {
         .pipe(livereload());
 });
 
+var isBundling;
+gulp.task('bundle', ['copy', 'transpile-app', 'transpile-component'], function() {
+    if (isBundling) return;
+    isBundling = true;
+
+    return new Promise(function(resolve, reject) {
+        nodemon({
+            script: './build/app/browserify.js',
+            ignore: '*'
+        })
+            .on('exit', function() {
+                console.log('App successfully bundled');
+                isBundling = false;
+                resolve();
+            })
+            .on('crash', function(err) {
+                isBundling = false;
+                reject(err);
+            });
+    });
+});
+
 gulp.task('test', ['transpile-app', 'transpile-component'], function() {
     return gulp
         .src('build/**/*.spec.js', {
@@ -91,34 +113,24 @@ gulp.task('test', ['transpile-app', 'transpile-component'], function() {
         .pipe(mocha());
 });
 
-gulp.task('run', ['copy', 'transpile-app', 'transpile-component', 'clearCache'], function() {
-    app = require('./build/app/start');
-    app.ready.then(livereload.reload);
+gulp.task('run', ['watch'], function() {
+    nodemon({
+        script: './build/app/start',
+        watch: ['build', 'node_modules'],
+        ignore: 'src',
+        nodeArgs: ['--debug=9999']
+    })
+        .on('restart', function() {
+            console.log('Restarted!');
+            livereload.reload();
+        });
 });
 
-gulp.task('clearCache', function() {
-    var build = path.join(__dirname, 'build');
-    Object.keys(require.cache).forEach(function(key) {
-        if (key.indexOf(build) === 0)
-            delete require.cache[key];
-    });
-
-    if (app) {
-        return app.stop();
-    }
-});
-
-gulp.task('rebundle', ['copy', 'transpile-component'], function() {
-    app.rebundle().then(livereload.reload);
-});
-
-gulp.task('watch', function() {
-    gulp.start('run');
+gulp.task('watch', ['bundle'], function() {
     livereload({
         start: true
     });
 
-    gulp.watch(paths.app, ['run']);
-    gulp.watch(['src/jedis-browserify/bundle.js.tpt', paths.component], ['rebundle']);
+    gulp.watch([paths.app, paths.component], ['bundle']);
     gulp.watch([paths.appasset, paths.componentasset], ['copy']);
 });

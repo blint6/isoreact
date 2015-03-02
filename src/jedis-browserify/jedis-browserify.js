@@ -35,11 +35,7 @@ module.exports = function browserifyBundler(app, options = {}) {
     let jsBundle = template(fs.readFileSync(__dirname + '/bundle.js.tpt'))({
         tRequire: tRequire,
         jedis: require.resolve('jedis/client.js'),
-        jedisOptions: {
-            component: {
-                mixins: [require.resolve('../jedis-react')],
-            }
-        },
+        jedisOptions: options.jedis || {},
         components: components,
         tree: app.component.root,
         io: {

@@ -1,4 +1,8 @@
 let Jedis = require('jedis');
+let cc = Jedis.createComponent;
+let DefaultRoute = require('../ala-react-router/lib/DefaultRoute');
+let RouteHandler = require('../ala-react-router/lib/RouteHandler');
+
 let Grid = require('Bootstrap/Grid');
 let Row = require('Bootstrap/Row');
 let Col = require('Bootstrap/Col');
@@ -11,41 +15,65 @@ let Clock = require('clock/frenchClock');
 // -- Create component tree --
 
 // Banner
-let banner = Jedis.createComponent(ProtoBanner, null,
-    Jedis.createComponent(ProtoTitle, {
-        title: 'Jedis with <3'
+let banner = (
+    cc(ProtoBanner, null,
+        cc(ProtoTitle, {
+            title: 'Jedis with <3'
+        })
+    ));
+let clock = (
+    cc(Clock, {
+        route: {
+            name: 'clock'
+        }
     }));
-let clock = Jedis.createComponent(Clock);
 
 // Menu
-let menu = Jedis.createComponent(ProtoMenu, null,
-    Jedis.createComponent(ProtoMenuItem, {
-        href: 'chat',
-        label: 'Chat'
-    }),
-    Jedis.createComponent(ProtoMenuItem, {
-        href: 'stats',
-        label: 'Statistics'
-    })
-);
+let menu = (
+    cc(ProtoMenu, null,
+        cc(ProtoMenuItem, {
+            to: 'clock',
+            label: 'Chat'
+        }),
+        cc(ProtoMenuItem, {
+            to: 'clock',
+            label: 'Statistics'
+        })
+    ));
 
 // Layout
-let layout = Jedis.createComponent(Grid, null,
-    Jedis.createComponent(Row, null,
-        Jedis.createComponent(Col, {
-            md: 12
-        }, banner)),
-    Jedis.createComponent(Row, null,
-        Jedis.createComponent(Col, {
-            md: 3
-        }, menu),
-        Jedis.createComponent(Col, {
-            md: 9
-        }, clock))
-);
+let layout = (
+    cc(Grid, {
+            route: {
+                path: '/'
+            }
+        },
+        cc(Row, null,
+            cc(Col, {
+                    md: 12
+                },
+                banner
+            )
+        ),
+        cc(Row, null,
+            cc(Col, {
+                    md: 3
+                },
+                menu
+            ),
+            cc(Col, {
+                    md: 9
+                },
+                clock,
+                cc(RouteHandler)
+            )
+        )
+    ));
 
-// Use contexts
-let clockCtx = clock.context();
-setInterval(() => clockCtx.handleState(), 1000);
+module.exports.app = Jedis.createPage(layout, {});
 
-module.exports = Jedis.createPage(layout, {});
+module.exports.run = function() {
+    // Use contexts
+    let clockCtx = clock.context();
+    setInterval(() => clockCtx.handleState(), 1000);
+};
