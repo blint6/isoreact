@@ -1,8 +1,8 @@
 {
-  "name": "jedis-react",
+  "name": "ala-react",
   "version": "0.0.0",
   "description": "",
-  "main": "jedis-react.js",
+  "main": "ala-react.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

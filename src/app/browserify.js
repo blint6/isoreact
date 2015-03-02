@@ -1,11 +1,11 @@
-let bundle = require('../jedis-browserify/jedis-browserify');
+let bundle = require('../ala-browserify/ala-browserify');
 let protoCraft = require('./protoCraft');
 
 export default bundle(protoCraft.app, {
     workdir: './tmp/',
     jedis: {
         mixins: [
-            require.resolve('../jedis-react'),
+            require.resolve('../ala-react'),
             require.resolve('../ala-react-router')
         ],
     },

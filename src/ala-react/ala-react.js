@@ -20,6 +20,11 @@ let checkReactProps = function(obj) {
     }
 };
 
+let createClassRecursive = function(obj) {
+    obj._mixinCall('ala-react', '_createReactClass');
+    obj.children.forEach(child => createClassRecursive(child));
+};
+
 module.exports = {
 
     name: 'ala-react',
@@ -29,12 +34,7 @@ module.exports = {
             checkReactProps(this);
 
             if (!this._react.managerClass) {
-                function createClass(obj) {
-                    obj._mixinCall('ala-react', '_createReactClass');
-                    obj.children.forEach(child => createClass(child));
-                }
-
-                createClass(this);
+                createClassRecursive(this);
             }
 
             this._react.element = React.createElement(this._react.managerClass);
