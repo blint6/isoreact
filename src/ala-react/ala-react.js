@@ -5,24 +5,26 @@ let defaultRender = function() {
     return React.createElement('div', null, this.props.children);
 };
 
-let checkReactProps = function(obj) {
-    if (!obj.hasOwnProperty('_react')) {
-        obj._react = {
+let checkReactProps = function(component) {
+    if (!component.hasOwnProperty('_react')) {
+        component._react = {
             // React tree may differ from components tree a little
-            children: obj.children.slice()
+            children: component.children.slice()
         };
 
-        let reactDef = obj.react || {};
-        obj.react = {
+        let reactDef = component.react || {};
+        component.react = {
             render: defaultRender,
         };
-        extend(true, obj.react, reactDef);
+        extend(true, component.react, reactDef);
+
+        component._react.userRender = component.react.render;
     }
 };
 
-let createClassRecursive = function(obj) {
-    obj._mixinCall('ala-react', '_createReactClass');
-    obj.children.forEach(child => createClassRecursive(child));
+let createClassRecursive = function(component) {
+    component._mixinCall('ala-react', '_createReactClass');
+    component.children.forEach(child => createClassRecursive(child));
 };
 
 module.exports = {
@@ -51,28 +53,26 @@ module.exports = {
         _createReactClass: function() {
             checkReactProps(this);
 
-            let render = this.react.render,
-                initialState = this.state,
-                cptForRender = this,
-                setComposite = (reactComposite => this._react.composite = reactComposite),
+            let component = this,
                 childrenElements = (() => this._react.children.map(child => React.createElement(child._react.managerClass)));
 
             // Decorate component defined react properties
             this.react.getInitialState = this.react.getInitialState || function() {
-                return initialState;
+                return component.state;
             };
 
             this.react.render = function() {
-                setComposite(this);
-                return render.call(this, cptForRender);
+                component._react.composite = this;
+                return component._react.userRender.call(this, component);
             };
 
             // Define inner _react properties
             this._react.userClass = React.createClass(this.react);
             this._react.managerClass = React.createClass({
-                render: () => React.createElement.apply(React, [
-                    this._react.userClass, this.props
-                ].concat(childrenElements()))
+                render: () => {
+                    let elementArgs = [this._react.userClass, this.props].concat(childrenElements());
+                    return React.createElement.apply(React, elementArgs);
+                }
             });
 
             return this.react.managerClass;
