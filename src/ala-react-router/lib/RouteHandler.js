@@ -1,11 +1,7 @@
 module.exports = {
     name: 'ReactRouter.RouteHandler',
 
-    service: {
-        getDefaultProps: function() {
-            return {
-                type: 'RouteHandler',
-            };
-        }
-    },
+    client: {
+        default: require.resolve('./RouteHandler.cli')
+    }
 };

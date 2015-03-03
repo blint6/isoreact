@@ -1,16 +1,15 @@
 let React = require('react');
 let Router = require('react-router');
-let Route = Router.Route;
-let DefaultRoute = Router.DefaultRoute;
 let extend = require('extend');
 
-function routesOf(comp) {
+function routesOf(root, comp) {
+    comp = comp || root;
     comp._mixinCall('ala-react', '_createReactClass');
     let routeDef = comp.props.route;
     let childRoutes = [];
 
     // Deep first tree generation
-    comp.children.forEach(child => childRoutes = childRoutes.concat(routesOf(child)));
+    comp.children.forEach(child => childRoutes = childRoutes.concat(routesOf(root, child)));
 
     if (routeDef) {
         // Wrap react class in a one that bundles props and children directly (because of react-router structure)
@@ -20,7 +19,8 @@ function routesOf(comp) {
 
         comp.children.forEach(child => {
             let childRoute = child.props.route;
-            if (!childRoute || (childRoute.type !== 'Route' && childRoute.type !== 'DefaultRoute'))
+
+            if (!childRoute || (childRoute.type && childRoute.type !== 'Route' && childRoute.type !== 'DefaultRoute'))
                 childClasses.push(child);
         });
 
@@ -28,10 +28,10 @@ function routesOf(comp) {
         comp._react.children = childClasses;
 
         let props = extend({
-            handler: comp._react.managerClass
+            handler: (routeDef.path === '/' ? root : comp)._react.managerClass
         }, routeDef);
 
-        console.debug('Setting route type', routeType, 'to', comp.id, ':', props);
+        console.debug('Setting route type', routeType, 'to', comp.id, ':', props, childRoutes);
         return [React.createElement.apply(React, [routeClass, props].concat(childRoutes))];
     }
 

@@ -43,11 +43,7 @@ let menu = (
 
 // Layout
 let layout = (
-    cc(Grid, {
-            route: {
-                path: '/'
-            }
-        },
+    cc(Grid, null,
         cc(Row, null,
             cc(Col, {
                     md: 12
@@ -62,7 +58,11 @@ let layout = (
                 menu
             ),
             cc(Col, {
-                    md: 9
+                    md: 9,
+
+                    route: {
+                        path: '/'
+                    }
                 },
                 clock,
                 cc(RouteHandler)
